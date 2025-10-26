@@ -1,12 +1,12 @@
-import { IsNotEmpty, IsString, ValidateIf } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class UpdatePokemonDto {
-  @ValidateIf(dto => dto.type === undefined)
   @IsNotEmpty()
   @IsString()
-  name?: string;
+  name: string;
 
-  @ValidateIf(dto => dto.name === undefined)
   @IsNotEmpty()
-  type?: string;
+  @IsArray()
+  @IsString({ each: true })
+  types: string[];
 }

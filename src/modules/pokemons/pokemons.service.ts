@@ -9,30 +9,54 @@ import { UniquePokemonQuery } from './pokemons.types';
 export class PokemonsService {
   constructor(private prisma: PrismaService) {}
 
-  async getPokemons(getPokemonsDto: { query: { type?: string, name?: string }, pagination: { page: number, limit: number }, sort: { sortBy?, sortOrder? } }): Promise<{ data: Pokemon[], total }> {
+  async getPokemons(getPokemonsDto: {
+    query: { type?: string; name?: string };
+    pagination: { page: number; limit: number };
+    sort: { sortBy?; sortOrder? };
+  }): Promise<{ data: Pokemon[]; total }> {
     const { query, pagination, sort } = getPokemonsDto;
-    const where = query.name ? { ...query, name: { contains: query.name} } : query;
-    const total = await this.prisma.pokemon.count({where});
+
+    const where = this.buildWhereQuery(query);
+    const total = await this.prisma.pokemon.count({ where });
     const data = await this.prisma.pokemon.findMany({
       where,
       take: pagination.limit,
       skip: (pagination.page - 1) * pagination.limit,
       orderBy: {
-        [sort.sortBy]: sort.sortOrder
-      }
+        [sort.sortBy]: sort.sortOrder,
+      },
+      include: {
+        types: {
+          select: { type: true },
+        },
+      },
     });
-    return { data, total};
+    return { data, total };
   }
 
   async createPokemon(data: CreatePokemonDto): Promise<Pokemon> {
+    const pokemonData = { name: data.name };
     return this.prisma.pokemon.create({
-      data
+      data: {
+        ...pokemonData,
+        types: {
+          create: this.buildCreateTypesData(data.types),
+        },
+      },
+      include: {
+        types: {
+          select: { type: true },
+        },
+      },
     });
   }
 
-  async deletePokemon(where: UniquePokemonQuery): Promise<Pokemon> {
-    return this.prisma.pokemon.delete({
-      where
+  async deletePokemon(where: UniquePokemonQuery): Promise<void> {
+    await this.prisma.typesOnPokemons.deleteMany({
+      where: { pokemon_id: where.id },
+    });
+    await this.prisma.pokemon.delete({
+      where,
     });
   }
 
@@ -41,9 +65,43 @@ export class PokemonsService {
     data: UpdatePokemonDto;
   }): Promise<Pokemon> {
     const { where, data } = params;
-    return this.prisma.pokemon.update({
-      data, 
-      where,
+
+    await this.prisma.typesOnPokemons.deleteMany({
+      where: { pokemon_id: where.id },
     });
+
+    return this.prisma.pokemon.update({
+      data: {
+        name: data.name,
+        types: {
+          create: this.buildCreateTypesData(data.types),
+        },
+      },
+      where,
+      include: {
+        types: {
+          select: { type: true },
+        },
+      },
+    });
+  }
+
+  private buildWhereQuery(query: { type?: string; name?: string }) {
+    const whereNameQuery = query.name ? { name: { contains: query.name } } : {};
+    const whereTypeQuery = query.type
+      ? { types: { some: { type: { name: query.type } } } }
+      : {};
+    return { ...whereNameQuery, ...whereTypeQuery };
+  }
+
+  private buildCreateTypesData(types: string[]) {
+    return types.map((typeName) => ({
+      type: {
+        connectOrCreate: {
+          where: { name: typeName },
+          create: { name: typeName },
+        },
+      },
+    }));
   }
 }

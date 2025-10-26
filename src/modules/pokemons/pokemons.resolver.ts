@@ -9,6 +9,10 @@ export class PokemonsResolver {
   @SkipThrottle()
   @Query('pokemons')
   pokemons() {
-    return this.pokemonService.getPokemons({query: {}, pagination: { limit: 10, page: 1 }, sort: {}});
+    return this.pokemonService.getPokemons({
+      query: {},
+      pagination: { limit: 10, page: 1 },
+      sort: {},
+    });
   }
 }

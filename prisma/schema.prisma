@@ -9,10 +9,28 @@ datasource db {
 
 model Pokemon {
   name String
-  type String
-
+  types TypesOnPokemons[]
   id         Int      @id @default(autoincrement())
   created_at DateTime @default(now())
 
   @@map("pokemons")
+}
+
+model Type {
+  name String @unique
+  pokeons TypesOnPokemons[]
+
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  @@map("types")
+}
+
+model TypesOnPokemons {
+  pokemon   Pokemon @relation(fields: [pokemon_id], references: [id])
+  pokemon_id Int
+  type      Type    @relation(fields: [type_id], references: [id])
+  type_id    Int
+
+  @@id([pokemon_id, type_id])
+  @@map("types_on_pokemons")
 }
