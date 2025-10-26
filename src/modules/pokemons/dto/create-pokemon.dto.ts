@@ -6,5 +6,6 @@ export class CreatePokemonDto {
   name: string;
 
   @IsNotEmpty()
+  @IsString()
   type: string;
 }

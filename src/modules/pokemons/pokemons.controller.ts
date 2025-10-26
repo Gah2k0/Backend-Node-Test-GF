@@ -15,8 +15,9 @@ export class PokemonsController {
   @HttpCode(200)
   async getPokemons(
     @Query(new ValidationPipe({ transform: true, whitelist: true })){ page, limit, sortBy, sortOrder, type, name }: GetPokemonsQueryDto
-  ): Promise<Pokemon[]> {
-      return this.pokemonService.getPokemons({ query: { type, name }, pagination: { page, limit }, sort: { sortBy, sortOrder } });
+  ): Promise<{ data: Pokemon[], total: number, page: number, limit: number, total_pages: number }> {
+      const { data, total } = await this.pokemonService.getPokemons({ query: { type, name }, pagination: { page, limit }, sort: { sortBy, sortOrder } });
+      return { data, total, page, limit, total_pages: Math.ceil(total / limit) };
   }
   @Post("/")
   @HttpCode(201)

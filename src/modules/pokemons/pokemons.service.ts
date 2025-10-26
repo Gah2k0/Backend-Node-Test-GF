@@ -9,10 +9,11 @@ import { UniquePokemonQuery } from './pokemons.types';
 export class PokemonsService {
   constructor(private prisma: PrismaService) {}
 
-  async getPokemons(data: { query: { type?: string, name?: string }, pagination: { page: number, limit: number }, sort: { sortBy, sortOrder } }): Promise<Pokemon[]> {
-    const { query, pagination, sort } = data;
+  async getPokemons(getPokemonsDto: { query: { type?: string, name?: string }, pagination: { page: number, limit: number }, sort: { sortBy?, sortOrder? } }): Promise<{ data: Pokemon[], total }> {
+    const { query, pagination, sort } = getPokemonsDto;
     const where = query.name ? { ...query, name: { contains: query.name} } : query;
-    return this.prisma.pokemon.findMany({
+    const total = await this.prisma.pokemon.count({where});
+    const data = await this.prisma.pokemon.findMany({
       where,
       take: pagination.limit,
       skip: (pagination.page - 1) * pagination.limit,
@@ -20,12 +21,7 @@ export class PokemonsService {
         [sort.sortBy]: sort.sortOrder
       }
     });
-  }
-
-  async pokemon(pokemonWhere: any): Promise<Pokemon> {
-    return this.prisma.pokemon.findUnique({
-      where: pokemonWhere
-    });
+    return { data, total};
   }
 
   async createPokemon(data: CreatePokemonDto): Promise<Pokemon> {

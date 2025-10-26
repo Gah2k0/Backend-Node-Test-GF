@@ -3,12 +3,9 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
-import { HelloModule } from "./modules/hello/hello.module";
-import { PokemonModule } from "./modules/pokemon/pokemons.module";
+import { PokemonModule } from "./modules/pokemons/pokemons.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
 
 @Module({
   imports: [
@@ -21,7 +18,6 @@ import { APP_GUARD } from "@nestjs/core";
         path: join(process.cwd(), "src/graphql.ts"),
       },
     }),
-    HelloModule,
     PokemonModule,
     PrismaModule,
     TypeOrmModule.forRoot({
@@ -31,19 +27,8 @@ import { APP_GUARD } from "@nestjs/core";
       synchronize: true,
       migrations: ["../typeorm/migrations/*.ts"],
     }),
-     ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          ttl: 10000,
-          limit: 20,
-        },
-      ],
-    }),
   ],
   controllers: [],
-  providers: [{
-    provide: APP_GUARD,
-    useClass: ThrottlerGuard
-  }],
+  providers: [],
 })
 export class AppModule {}
