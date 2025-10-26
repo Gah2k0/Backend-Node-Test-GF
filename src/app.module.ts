@@ -6,6 +6,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import { PokemonModule } from './modules/pokemons/pokemons.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PokeApiModule } from './modules/integrations/poke-api.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
     PokemonModule,
     PrismaModule,
+    PokeApiModule,
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: './database/database_orm.sqlite',

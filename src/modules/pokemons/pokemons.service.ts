@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Pokemon } from '@prisma/client';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UniquePokemonQuery } from './pokemons.types';
+import { PokeApiService } from '../integrations/poke-api.service';
 
 @Injectable()
 export class PokemonsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private pokeApiService: PokeApiService,
+  ) {}
 
   async getPokemons(getPokemonsDto: {
     query: { type?: string; name?: string };
@@ -86,6 +90,35 @@ export class PokemonsService {
     });
   }
 
+  async importPokemonFromPokeAPI(id: string): Promise<Pokemon> {
+    const response = await this.pokeApiService.getPokemonData(id);
+
+    if (!response) {
+      throw new NotFoundException(`Pokemon with ID ${id} not found in PokeAPI`);
+    }
+    const fetchedPokemon = response;
+    Logger.log(`Fetched data from PokeAPI for Pokemon ID: ${id}`, response);
+    const pokemonData: CreatePokemonDto = {
+      name: fetchedPokemon.name,
+      types: fetchedPokemon.types?.map((typeInfo: { type: { name: string } }) =>
+        typeInfo.type.name?.toUpperCase(),
+      ),
+    };
+
+    const existingPokemon = await this.prisma.pokemon.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (existingPokemon) {
+      return this.updatePokemon({
+        where: { id: parseInt(id) },
+        data: pokemonData,
+      });
+    } else {
+      return this.createPokemon(pokemonData);
+    }
+  }
+
   private buildWhereQuery(query: { type?: string; name?: string }) {
     const whereNameQuery = query.name ? { name: { contains: query.name } } : {};
     const whereTypeQuery = query.type
@@ -98,8 +131,8 @@ export class PokemonsService {
     return types.map((typeName) => ({
       type: {
         connectOrCreate: {
-          where: { name: typeName },
-          create: { name: typeName },
+          where: { name: typeName.toUpperCase() },
+          create: { name: typeName.toUpperCase() },
         },
       },
     }));

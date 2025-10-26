@@ -17,28 +17,30 @@ describe('"pokemon" module tests', () => {
     const prisma = moduleFixture.get<PrismaService>(PrismaService);
     await prisma.$connect();
     await prisma.typesOnPokemons.deleteMany();
-    await prisma.type.deleteMany();
     await prisma.pokemon.deleteMany();
+    await prisma.type.deleteMany();
     await seed();
     await app.init();
+  });
+
+  afterAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    const prisma = moduleFixture.get<PrismaService>(PrismaService);
+    await prisma.$connect();  
+    await prisma.typesOnPokemons.deleteMany();
+    await prisma.pokemon.deleteMany();
+    await prisma.type.deleteMany();
+    await seed();
   });
 
   const createPokemon = async (data) => {
     return await request(app.getHttpServer()).post('/pokemons').send(data);
   };
 
-  // it('should return "Pokemon World!"', async () => {
-  //   const response: any = await request(app.getHttpServer())
-  //     .post('/graphql')
-  //     .send({
-  //       query: `query pokemons {
-  // 				pokemons
-  // 			}`,
-  //     });
-
-  //   expect(response.body.errors).toBeUndefined();
-  //   expect(response.body.data.pokemon).toBe('Pokemon World!');
-  // });
   it('should return pokemons', async () => {
     const response: any = await request(app.getHttpServer())
       .get('/pokemons?limit=10')
@@ -56,7 +58,7 @@ describe('"pokemon" module tests', () => {
 
     expect(response.body.errors).toBeUndefined();
     expect(response.body.name).toBe('Gabriel');
-    expect(response.body.types[0].type.name).toBe('backend developer');
+    expect(response.body.types[0].type.name).toBe('BACKEND DEVELOPER');
     expect(response.body.id).toBeGreaterThan(0);
   });
   it('should delete a pokemon', async () => {
@@ -86,7 +88,7 @@ describe('"pokemon" module tests', () => {
       .expect(200);
 
     expect(response.body.errors).toBeUndefined();
-    expect(response.body.types[0].type.name).toBe('new type');
+    expect(response.body.types[0].type.name).toBe('NEW TYPE');
     expect(response.body.id).toEqual(createdPokemon.body.id);
     expect(response.body.name).toEqual(createdPokemon.body.name);
   });

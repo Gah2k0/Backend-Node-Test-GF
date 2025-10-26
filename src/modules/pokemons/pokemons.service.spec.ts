@@ -1,9 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PokemonsService } from './pokemons.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { PokeApiService } from '../integrations/poke-api.service';
+import { NotFoundException } from '@nestjs/common';
 
 describe('src :: modules :: pokemons :: pokemons.service.ts', () => {
-  let pokemonsService: PokemonsService, prismaServiceMock: any;
+  let pokemonsService: PokemonsService,
+    prismaServiceMock: any,
+    pokeApiServiceMock: any;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -25,11 +29,18 @@ describe('src :: modules :: pokemons :: pokemons.service.ts', () => {
             },
           },
         },
+        {
+          provide: PokeApiService,
+          useValue: {
+            getPokemonData: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     pokemonsService = moduleFixture.get<PokemonsService>(PokemonsService);
     prismaServiceMock = moduleFixture.get<PrismaService>(PrismaService);
+    pokeApiServiceMock = moduleFixture.get<PokeApiService>(PokeApiService);
   });
 
   describe('#getPokemons', () => {
@@ -125,8 +136,8 @@ describe('src :: modules :: pokemons :: pokemons.service.ts', () => {
               {
                 type: {
                   connectOrCreate: {
-                    where: { name: 'string' },
-                    create: { name: 'string' },
+                    where: { name: 'STRING' },
+                    create: { name: 'STRING' },
                   },
                 },
               },
@@ -184,8 +195,8 @@ describe('src :: modules :: pokemons :: pokemons.service.ts', () => {
               {
                 type: {
                   connectOrCreate: {
-                    where: { name: 'string' },
-                    create: { name: 'string' },
+                    where: { name: 'STRING' },
+                    create: { name: 'STRING' },
                   },
                 },
               },
@@ -206,6 +217,43 @@ describe('src :: modules :: pokemons :: pokemons.service.ts', () => {
       expect(prismaServiceMock.pokemon.update).toHaveBeenCalledWith(
         expectedUpdateArgs,
       );
+    });
+  });
+  describe('#importPokemonFromPokeAPI', () => {
+    it('should throw NotFoundException when poke api returns no data', async () => {
+      pokeApiServiceMock.getPokemonData.mockResolvedValueOnce(null);
+
+      expect(pokemonsService.importPokemonFromPokeAPI('123')).rejects.toThrow(
+        new NotFoundException(`Pokemon with ID 123 not found in PokeAPI`),
+      );
+    });
+
+    it('should call updatePokemon when pokemon already exists', async () => {
+      const fetched = {
+        name: 'pikachu',
+        types: [{ type: { name: 'electric' } }],
+      };
+
+      pokemonsService['pokeApiService'].getPokemonData = jest
+        .fn()
+        .mockResolvedValueOnce(fetched);
+
+      prismaServiceMock.pokemon.findUnique.mockResolvedValueOnce({ id: 123 });
+
+      const updateSpy = jest
+        .spyOn(pokemonsService as any, 'updatePokemon')
+        .mockResolvedValueOnce({} as any);
+
+      const result = await pokemonsService.importPokemonFromPokeAPI('123');
+
+      expect(prismaServiceMock.pokemon.findUnique).toHaveBeenCalledWith({
+        where: { id: 123 },
+      });
+      expect(updateSpy).toHaveBeenCalledWith({
+        where: { id: 123 },
+        data: { name: 'pikachu', types: ['ELECTRIC'] },
+      });
+      expect(result).toEqual({});
     });
   });
 });

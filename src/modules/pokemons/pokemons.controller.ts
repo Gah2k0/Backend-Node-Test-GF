@@ -47,7 +47,7 @@ export class PokemonsController {
   async createPokemon(
     @Body() createPokemonDto: CreatePokemonDto,
   ): Promise<Pokemon> {
-    return this.pokemonService.createPokemon(createPokemonDto);
+    return await this.pokemonService.createPokemon(createPokemonDto);
   }
   @Delete('/:id')
   @HttpCode(204)
@@ -64,5 +64,11 @@ export class PokemonsController {
       where: { id: Number(id) },
       data: updatePokemonDto,
     });
+  }
+
+  @Post('/import/:id')
+  @HttpCode(201)
+  async importPokemon(@Param('id') id: string): Promise<Pokemon> {
+    return await this.pokemonService.importPokemonFromPokeAPI(id);
   }
 }

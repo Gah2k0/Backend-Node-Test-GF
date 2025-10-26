@@ -1,0 +1,168 @@
+{
+	"info": {
+		"_postman_id": "e83d788d-3de7-4500-95e6-4b7d4c21e64b",
+		"name": "DWS-Node-Backend-Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21693792"
+	},
+	"item": [
+		{
+			"name": "Get Pokemons",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/pokemons",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"pokemons"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "gah",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "TESTE",
+							"disabled": true
+						},
+						{
+							"key": "page",
+							"value": "8",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "100",
+							"disabled": true
+						},
+						{
+							"key": "sortOrder",
+							"value": "asc",
+							"disabled": true
+						},
+						{
+							"key": "sortBy",
+							"value": "name",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Pokemon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Paula\",\r\n    \"types\": [\"new type\", \"TESTE\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/pokemons",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"pokemons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Pokemon",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"types\": [\"GRASS\", \"TESTE\"],\r\n    \"name\": \"Gah\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/pokemons/175",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"pokemons",
+						"175"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Pokemon",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/pokemons/176",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"pokemons",
+						"176"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Import Pokemon from PokeAPI",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Gah\",\r\n    \"types\": [\"new type\", \"TESTE\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/pokemons/import/193",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"pokemons",
+						"import",
+						"193"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
